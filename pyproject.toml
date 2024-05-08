@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "knowledge-bridge"
+version = "0.1.0"
+description = "Bridge between knowledge and their source"
+authors = ["Anatolii Stehnii <tsdaemon@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+neo4j = "^5.20.0"
+notion-client = "^2.2.1"
+pydantic = "^2.7.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.2"
+mypy = "^1.10.0"
+tqdm = "^4.66.4"
+
+[tool.poetry.group.examples.dependencies]
+jupyter = "^1.0.0"
+ipykernel = "^6.29.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
