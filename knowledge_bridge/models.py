@@ -3,16 +3,12 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class NodeEntity(BaseModel):
+class BaseNodeEntity(BaseModel):
     id: str
     type: str
-    created: datetime
-    edited: datetime
-    link: str | None
-    text: str | None
 
     def __eq__(self, value: object) -> bool:
-        if not isinstance(value, NodeEntity):
+        if not isinstance(value, BaseNodeEntity):
             return False
         return value.id == self.id
 
@@ -20,9 +16,17 @@ class NodeEntity(BaseModel):
         return hash(self.id)
 
 
+class NodeEntity(BaseNodeEntity):
+    created: datetime
+    edited: datetime
+    link: str | None
+    text: str | None
+    obsolete: bool = False
+
+
 class EdgeEntity(BaseModel):
-    source: NodeEntity
-    target: NodeEntity
+    source: BaseNodeEntity
+    target: BaseNodeEntity
     type: str
 
     def __eq__(self, value: object) -> bool:
