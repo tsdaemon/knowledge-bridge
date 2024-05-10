@@ -11,11 +11,20 @@ from .base import BaseProvider
 logger = logging.getLogger(__name__)
 
 
-def process_paginated(endpoint_method, **kwargs):
+def parse_datetime(value: str) -> datetime:
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+
+
+def process_paginated(endpoint_method, last_edited_time=None, **kwargs):
     next_cursor = None
     while True:
         response = endpoint_method(start_cursor=next_cursor, **kwargs)
         for result in response["results"]:
+            if (
+                last_edited_time
+                and parse_datetime(result["last_edited_time"]) < last_edited_time
+            ):
+                return
             yield result
         has_more = response.get("has_more", False)
         if not has_more:
@@ -32,7 +41,33 @@ class NotionProvider(BaseProvider):
     def get_latest_data(
         self, last_sync_timestamp: datetime | None
     ) -> Tuple[list[NodeEntity], list[EdgeEntity]]:
-        return ([], [])
+        pages = process_paginated(
+            self.client.search,
+            last_edited_time=last_sync_timestamp,
+            query="",
+            filter={"value": "page", "property": "object"},
+        )
+        for page in pages:
+            self._process_page(page)
+
+        databases = process_paginated(
+            self.client.search,
+            last_edited_time=last_sync_timestamp,
+            query="",
+            filter={"value": "database", "property": "object"},
+        )
+        for database in databases:
+            self._process_database(database)
+
+        return (
+            list(self.nodes.values()),
+            [
+                EdgeEntity(
+                    source=self.nodes[source], target=self.nodes[target], type=type
+                )
+                for source, target, type in self.edges
+            ],
+        )
 
     def _process_page(self, page):
         if page["id"] in self.nodes:
@@ -52,8 +87,8 @@ class NotionProvider(BaseProvider):
         )
         self.nodes[node.id] = node
 
-        parent = page.get("parent")
-        if parent and parent["type"] != "workspace":
+        parent = page["parent"]
+        if parent["type"] != "workspace":
             edge = (parent[parent["type"]], node.id, "CHILD_PAGE")
             self.edges.add(edge)
 
@@ -109,8 +144,8 @@ class NotionProvider(BaseProvider):
         )
         self.nodes[node.id] = node
 
-        parent = block.get("parent")
-        if parent and parent["type"] != "workspace":
+        parent = block["parent"]
+        if parent["type"] != "workspace":
             edge = (parent[parent["type"]], node.id, "CHILD_BLOCK")
             self.edges.add(edge)
 
@@ -139,8 +174,8 @@ class NotionProvider(BaseProvider):
         )
         self.nodes[node.id] = node
 
-        parent = database.get("parent")
-        if parent and parent["type"] != "workspace":
+        parent = database["parent"]
+        if parent["type"] != "workspace":
             edge = (parent[parent["type"]], node.id, "CHILD_DATABASE")
             self.edges.add(edge)
 
