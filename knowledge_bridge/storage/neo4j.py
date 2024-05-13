@@ -1,8 +1,9 @@
 from contextlib import contextmanager
 from datetime import datetime
 import os
+from typing import Generator
 import uuid
-from neo4j import Driver, GraphDatabase, Record
+from neo4j import GraphDatabase, Record, Session
 
 from ..models import BaseNodeEntity, NodeEntity, EdgeEntity
 
@@ -10,46 +11,44 @@ from .base import BaseGraphStorage
 
 
 class Neo4jGraphStorage(BaseGraphStorage):
-    def __init__(self, driver: Driver):
-        self.driver = driver
+    def __init__(self, session: Session):
+        self.session = session
 
     def get_last_sync_timestamp(self, provider: str) -> datetime | None:
-        with self.driver.session() as session:
-            query = (
-                "MATCH (n:Sync {provider: $provider}) "
-                "ORDER BY n.timestamp DESC "
-                "LIMIT 1 "
-                "RETURN n.timestamp AS timestamp"
-            )
-            result = session.run(query, provider=provider)
-            record = result.single()
-            if record is not None:
-                return datetime.fromisoformat(record["timestamp"])
-            else:
-                return None
+        query = (
+            "MATCH (n:Sync {provider: $provider}) "
+            "RETURN n.timestamp AS timestamp "
+            "ORDER BY n.timestamp DESC "
+            "LIMIT 1 "
+        )
+        result = self.session.run(query, provider=provider)
+        record = result.single()
+        if record is not None:
+            return record["timestamp"].to_native()
+        else:
+            return None
 
     def incremental_data_sync(
         self, provider: str, nodes: list[NodeEntity], edges: list[EdgeEntity]
     ) -> None:
-        with self.driver.session() as session:
-            # Upsert new nodes and edges
-            session.write_transaction(self._batch_create_or_update_nodes, nodes)
-            session.write_transaction(self._batch_create_or_update_edges, edges)
+        # Upsert new nodes and edges
+        self.session.write_transaction(self._batch_create_or_update_nodes, nodes)
+        self.session.write_transaction(self._batch_create_or_update_edges, edges)
 
-            # Create sync metadata node
-            sync_metadata = session.write_transaction(
-                self._create_sync_metadata, provider
-            )
+        # Create sync metadata node
+        sync_metadata = self.session.write_transaction(
+            self._create_sync_metadata, provider
+        )
 
-            # Create edges between upgrade metadata and new nodes
-            sync_metadata_node = BaseNodeEntity(id=sync_metadata["id"], type="Upgrade")
-            sync_metadata_edges = [
-                EdgeEntity(source=sync_metadata_node, target=node, type="SYNC")
-                for node in nodes
-            ]
-            session.write_transaction(
-                self._batch_create_or_update_edges, sync_metadata_edges
-            )
+        # Create edges between upgrade metadata and new nodes
+        sync_metadata_node = BaseNodeEntity(id=sync_metadata["id"], type="Upgrade")
+        sync_metadata_edges = [
+            EdgeEntity(source=sync_metadata_node, target=node, type="SYNC")
+            for node in nodes
+        ]
+        self.session.write_transaction(
+            self._batch_create_or_update_edges, sync_metadata_edges
+        )
 
     @staticmethod
     def _create_sync_metadata(tx, provider: str) -> Record:
@@ -57,7 +56,7 @@ class Neo4jGraphStorage(BaseGraphStorage):
             "MERGE (n:Sync {id: $id, provider: $provider, timestamp: datetime()}) "
             "RETURN n"
         )
-        result = tx.run(query, provider=provider, id=uuid.uuid4())
+        result = tx.run(query, provider=provider, id=str(uuid.uuid4()))
         return result.single()[0]
 
     @staticmethod
@@ -98,7 +97,7 @@ class Neo4jGraphStorage(BaseGraphStorage):
 
 
 @contextmanager
-def get_driver():
+def get_session(database: str | None = None) -> Generator[Session, None, None]:
     uri = os.getenv("NEO4J_URI", "neo4j://localhost")
     username = os.getenv("NEO4J_USER", "neo4j")
     password = os.getenv("NEO4J_PASSWORD", "neo4j")
@@ -106,4 +105,5 @@ def get_driver():
 
     with GraphDatabase.driver(uri, auth=AUTH) as driver:
         driver.verify_connectivity()
-        yield driver
+        with driver.session(database=database) as session:
+            yield session

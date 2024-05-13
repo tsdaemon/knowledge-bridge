@@ -38,6 +38,8 @@ class NotionProvider(BaseProvider):
         self.edges: set[Tuple[str, str, str]] = set()
         self.nodes: dict[str, NodeEntity] = {}
 
+        super().__init__()
+
     def get_latest_data(
         self, last_sync_timestamp: datetime | None
     ) -> Tuple[list[NodeEntity], list[EdgeEntity]]:
@@ -47,7 +49,7 @@ class NotionProvider(BaseProvider):
             query="",
             filter={"value": "page", "property": "object"},
         )
-        for page in pages:
+        for page in self.tqdm(pages, desc="Processing pages"):
             self._process_page(page)
 
         databases = process_paginated(
@@ -56,7 +58,7 @@ class NotionProvider(BaseProvider):
             query="",
             filter={"value": "database", "property": "object"},
         )
-        for database in databases:
+        for database in self.tqdm(databases, desc="Processing databases"):
             self._process_database(database)
 
         return (
@@ -71,10 +73,10 @@ class NotionProvider(BaseProvider):
 
     def _process_page(self, page):
         if page["id"] in self.nodes:
-            logger.debug(f"Skipping processed page {page['id']}")
+            logger.info(f"Skipping processed page {page['id']}")
             return
 
-        logger.debug(f"Processing page {page['id']}")
+        logger.info(f"Processing page {page['id']}")
         node = NodeEntity(
             id=page["id"],
             type="page",
@@ -101,10 +103,10 @@ class NotionProvider(BaseProvider):
 
     def _process_block(self, block):
         if block["id"] in self.nodes:
-            logger.debug(f"Skipping processed block {block['id']}")
+            logger.info(f"Skipping processed block {block['id']}")
             return
 
-        logger.debug(f"Processing block {block['id']}")
+        logger.info(f"Processing block {block['id']}")
 
         if block["type"] == "child_page":
             try:
@@ -158,10 +160,10 @@ class NotionProvider(BaseProvider):
 
     def _process_database(self, database):
         if database["id"] in self.nodes:
-            logger.debug(f"Skipping processed database {database['id']}")
+            logger.info(f"Skipping processed database {database['id']}")
             return
 
-        logger.debug(f"Processing database {database['id']}")
+        logger.info(f"Processing database {database['id']}")
         node = NodeEntity(
             id=database["id"],
             type="database",
