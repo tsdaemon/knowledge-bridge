@@ -4,10 +4,12 @@ import os
 import uuid
 from neo4j import Driver, GraphDatabase, Record
 
-from knowledge_bridge.models import BaseNodeEntity, NodeEntity, EdgeEntity
+from ..models import BaseNodeEntity, NodeEntity, EdgeEntity
+
+from .base import BaseGraphStorage
 
 
-class Neo4jDatabase:
+class Neo4jGraphStorage(BaseGraphStorage):
     def __init__(self, driver: Driver):
         self.driver = driver
 
@@ -28,7 +30,7 @@ class Neo4jDatabase:
 
     def incremental_data_sync(
         self, provider: str, nodes: list[NodeEntity], edges: list[EdgeEntity]
-    ):
+    ) -> None:
         with self.driver.session() as session:
             # Upsert new nodes and edges
             session.write_transaction(self._batch_create_or_update_nodes, nodes)
