@@ -33,8 +33,8 @@ def process_paginated(endpoint_method, last_edited_time=None, **kwargs):
 
 
 class NotionProvider(BaseProvider):
-    def __init__(self, token: str):
-        self.client = Client(auth=token)
+    def __init__(self, client: Client):
+        self.client = client
         self.edges: set[Tuple[str, str, str]] = set()
         self.nodes: dict[str, NodeEntity] = {}
 

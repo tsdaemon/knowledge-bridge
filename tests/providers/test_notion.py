@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 import pytest
 
 from knowledge_bridge.models import EdgeEntity, NodeEntity
@@ -124,13 +124,13 @@ def notion_client_mock():
         else:
             raise ValueError("Invalid filter value")
 
-    with patch("knowledge_bridge.providers.notion.Client") as mock:
-        mock.return_value.search.side_effect = search_method
-        mock.return_value.blocks.children.list.return_value = notion_list_block_response
-        mock.return_value.databases.query.return_value = notion_databases_query_response
-        mock.return_value.pages.retrieve.return_value = page2
-        mock.return_value.databases.retrieve.return_value = database1
-        yield mock
+    mock = Mock()
+    mock.search.side_effect = search_method
+    mock.blocks.children.list.return_value = notion_list_block_response
+    mock.databases.query.return_value = notion_databases_query_response
+    mock.pages.retrieve.return_value = page2
+    mock.databases.retrieve.return_value = database1
+    return mock
 
 
 @pytest.fixture
@@ -199,9 +199,8 @@ def test_process_paginated_last_edited_time(notion_search_endpoint_mock):
     notion_search_endpoint_mock.assert_any_call(start_cursor="page3", query="test")
 
 
-@pytest.mark.usefixtures("notion_client_mock")
-def test_get_latest_data():
-    notion_provider = NotionProvider(token="test")
+def test_get_latest_data(notion_client_mock):
+    notion_provider = NotionProvider(client=notion_client_mock)
     nodes, edges = notion_provider.get_latest_data(
         last_sync_timestamp=parse_datetime("2022-01-03T00:00:00Z")
     )
