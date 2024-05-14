@@ -41,7 +41,7 @@ class Neo4jGraphStorage(BaseGraphStorage):
         )
 
         # Create edges between upgrade metadata and new nodes
-        sync_metadata_node = BaseNodeEntity(id=sync_metadata["id"], type="Upgrade")
+        sync_metadata_node = BaseNodeEntity(id=sync_metadata["id"], type="Sync")
         sync_metadata_edges = [
             EdgeEntity(source=sync_metadata_node, target=node, type="SYNC")
             for node in nodes
@@ -78,7 +78,7 @@ class Neo4jGraphStorage(BaseGraphStorage):
                 text=node.text,
                 obsolete=node.obsolete,
             )
-            results.append(result.single()[0])
+            results.append(result.peek()[0])
         return results
 
     @staticmethod
@@ -92,18 +92,25 @@ class Neo4jGraphStorage(BaseGraphStorage):
                 "RETURN r"
             )
             result = tx.run(query, sourceId=edge.source.id, targetId=edge.target.id)
-            results.append(result.single()[0])
+            results.append(result.peek()[0])
         return results
 
 
 @contextmanager
-def get_session(database: str | None = None) -> Generator[Session, None, None]:
-    uri = os.getenv("NEO4J_URI", "neo4j://localhost")
-    username = os.getenv("NEO4J_USER", "neo4j")
-    password = os.getenv("NEO4J_PASSWORD", "neo4j")
-    AUTH = (username, password)
+def get_neo4j_session(
+    uri: str | None = None,
+    username: str | None = None,
+    password: str | None = None,
+    database: str | None = None,
+) -> Generator[Session, None, None]:
+    uri = uri or os.getenv("NEO4J_URI", "neo4j://localhost")
+    username = username or os.getenv("NEO4J_USER", "neo4j")
+    password = password or os.getenv("NEO4J_PASSWORD", "neo4j")
+    database = database or os.getenv("NEO4J_DATABASE", None)
 
-    with GraphDatabase.driver(uri, auth=AUTH) as driver:
+    auth = (username, password)
+
+    with GraphDatabase.driver(uri, auth=auth) as driver:  # type: ignore
         driver.verify_connectivity()
         with driver.session(database=database) as session:
             yield session
