@@ -13,8 +13,8 @@ from knowledge_bridge.providers.notion import (
 def notion_client_mock():
     page1 = {
         "id": "page1",
-        "last_edited_time": "2022-01-04T00:00:00Z",
-        "created_time": "2022-01-01T00:00:00Z",
+        "last_edited_time": "2022-01-04T00:00:00.000Z",
+        "created_time": "2022-01-01T00:00:00.000Z",
         "properties": {},
         "url": "https://example.com/page1",
         "in_trash": False,
@@ -24,8 +24,8 @@ def notion_client_mock():
     }
     page2 = {
         "id": "page2",
-        "last_edited_time": "2022-01-05T00:00:00Z",
-        "created_time": "2022-01-02T00:00:00Z",
+        "last_edited_time": "2022-01-05T00:00:00.000Z",
+        "created_time": "2022-01-02T00:00:00.000Z",
         "properties": {},
         "url": "https://example.com/page2",
         "in_trash": True,
@@ -36,8 +36,8 @@ def notion_client_mock():
     }
     page3 = {
         "id": "page3",
-        "last_edited_time": "2022-01-01T00:00:00Z",
-        "created_time": "2022-01-01T00:00:00Z",
+        "last_edited_time": "2022-01-01T00:00:00.000Z",
+        "created_time": "2022-01-01T00:00:00.000Z",
         "properties": {},
         "url": "https://example.com/page3",
         "in_trash": True,
@@ -52,8 +52,8 @@ def notion_client_mock():
     }
     database1 = {
         "id": "database1",
-        "last_edited_time": "2022-01-03T00:00:00Z",
-        "created_time": "2022-01-01T00:00:00Z",
+        "last_edited_time": "2022-01-03T00:00:00.000Z",
+        "created_time": "2022-01-01T00:00:00.000Z",
         "properties": {},
         "url": "https://example.com/database1",
         "in_trash": False,
@@ -64,8 +64,8 @@ def notion_client_mock():
     }
     database2 = {
         "id": "database2",
-        "last_edited_time": "2022-01-04T00:00:00Z",
-        "created_time": "2022-01-02T00:00:00Z",
+        "last_edited_time": "2022-01-04T00:00:00.000Z",
+        "created_time": "2022-01-02T00:00:00.000Z",
         "properties": {},
         "url": "https://example.com/database2",
         "parent": {"type": "workspace"},
@@ -78,8 +78,8 @@ def notion_client_mock():
         "id": "block1",
         "type": "paragraph",
         "paragraph": {"text": [{"type": "text", "text": {"content": "Hello, World!"}}]},
-        "last_edited_time": "2022-01-04T00:00:00Z",
-        "created_time": "2022-01-02T00:00:00Z",
+        "last_edited_time": "2022-01-04T00:00:00.000Z",
+        "created_time": "2022-01-02T00:00:00.000Z",
         "parent": {
             "type": "page",
             "page": "page1",
@@ -88,8 +88,8 @@ def notion_client_mock():
     block2 = {
         "id": "page2",
         "type": "child_page",
-        "last_edited_time": "2022-01-04T00:00:00Z",
-        "created_time": "2022-01-02T00:00:00Z",
+        "last_edited_time": "2022-01-04T00:00:00.000Z",
+        "created_time": "2022-01-02T00:00:00.000Z",
         "parent": {
             "type": "page",
             "page": "page1",
@@ -98,8 +98,8 @@ def notion_client_mock():
     block3 = {
         "id": "database1",
         "type": "child_database",
-        "last_edited_time": "2022-01-04T00:00:00Z",
-        "created_time": "2022-01-02T00:00:00Z",
+        "last_edited_time": "2022-01-04T00:00:00.000Z",
+        "created_time": "2022-01-02T00:00:00.000Z",
         "parent": {
             "type": "page",
             "page": "page1",
@@ -139,24 +139,24 @@ def notion_search_endpoint_mock():
     search_response = [
         {
             "results": [
-                {"id": "page1", "last_edited_time": "2022-01-05T00:00:00Z"},
-                {"id": "page2", "last_edited_time": "2022-01-04T00:00:00Z"},
+                {"id": "page1", "last_edited_time": "2022-01-05T00:00:00.000Z"},
+                {"id": "page2", "last_edited_time": "2022-01-04T00:00:00.000Z"},
             ],
             "has_more": True,
             "next_cursor": "page3",
         },
         {
             "results": [
-                {"id": "page3", "last_edited_time": "2022-01-04T00:00:00Z"},
-                {"id": "page4", "last_edited_time": "2022-01-03T00:00:00Z"},
+                {"id": "page3", "last_edited_time": "2022-01-04T00:00:00.000Z"},
+                {"id": "page4", "last_edited_time": "2022-01-03T00:00:00.000Z"},
             ],
             "has_more": True,
             "next_cursor": "page5",
         },
         {
             "results": [
-                {"id": "page5", "last_edited_time": "2022-01-02T00:00:00Z"},
-                {"id": "page6", "last_edited_time": "2022-01-01T00:00:00Z"},
+                {"id": "page5", "last_edited_time": "2022-01-02T00:00:00.000Z"},
+                {"id": "page6", "last_edited_time": "2022-01-01T00:00:00.000Z"},
             ],
             "has_more": False,
         },
@@ -169,12 +169,12 @@ def test_process_paginated(notion_search_endpoint_mock):
     result = list(process_paginated(notion_search_endpoint_mock, query="test"))
     assert len(result) == 6
     assert result == [
-        {"id": "page1", "last_edited_time": "2022-01-05T00:00:00Z"},
-        {"id": "page2", "last_edited_time": "2022-01-04T00:00:00Z"},
-        {"id": "page3", "last_edited_time": "2022-01-04T00:00:00Z"},
-        {"id": "page4", "last_edited_time": "2022-01-03T00:00:00Z"},
-        {"id": "page5", "last_edited_time": "2022-01-02T00:00:00Z"},
-        {"id": "page6", "last_edited_time": "2022-01-01T00:00:00Z"},
+        {"id": "page1", "last_edited_time": "2022-01-05T00:00:00.000Z"},
+        {"id": "page2", "last_edited_time": "2022-01-04T00:00:00.000Z"},
+        {"id": "page3", "last_edited_time": "2022-01-04T00:00:00.000Z"},
+        {"id": "page4", "last_edited_time": "2022-01-03T00:00:00.000Z"},
+        {"id": "page5", "last_edited_time": "2022-01-02T00:00:00.000Z"},
+        {"id": "page6", "last_edited_time": "2022-01-01T00:00:00.000Z"},
     ]
     notion_search_endpoint_mock.assert_any_call(start_cursor=None, query="test")
     notion_search_endpoint_mock.assert_any_call(start_cursor="page3", query="test")
@@ -185,15 +185,15 @@ def test_process_paginated_last_edited_time(notion_search_endpoint_mock):
     result = list(
         process_paginated(
             notion_search_endpoint_mock,
-            last_edited_time=parse_datetime("2022-01-04T00:00:00Z"),
+            last_edited_time=parse_datetime("2022-01-04T00:00:00.000Z"),
             query="test",
         )
     )
     assert len(result) == 3
     assert result == [
-        {"id": "page1", "last_edited_time": "2022-01-05T00:00:00Z"},
-        {"id": "page2", "last_edited_time": "2022-01-04T00:00:00Z"},
-        {"id": "page3", "last_edited_time": "2022-01-04T00:00:00Z"},
+        {"id": "page1", "last_edited_time": "2022-01-05T00:00:00.000Z"},
+        {"id": "page2", "last_edited_time": "2022-01-04T00:00:00.000Z"},
+        {"id": "page3", "last_edited_time": "2022-01-04T00:00:00.000Z"},
     ]
     notion_search_endpoint_mock.assert_any_call(start_cursor=None, query="test")
     notion_search_endpoint_mock.assert_any_call(start_cursor="page3", query="test")
@@ -202,14 +202,14 @@ def test_process_paginated_last_edited_time(notion_search_endpoint_mock):
 def test_get_latest_data(notion_client_mock):
     notion_provider = NotionProvider(client=notion_client_mock)
     nodes, edges = notion_provider.get_latest_data(
-        last_sync_timestamp=parse_datetime("2022-01-03T00:00:00Z")
+        last_sync_timestamp=parse_datetime("2022-01-03T00:00:00.000Z")
     )
     assert nodes == [
         NodeEntity(
             id="page1",
             type="page",
-            edited=parse_datetime("2022-01-04T00:00:00Z"),
-            created=parse_datetime("2022-01-01T00:00:00Z"),
+            edited=parse_datetime("2022-01-04T00:00:00.000Z"),
+            created=parse_datetime("2022-01-01T00:00:00.000Z"),
             text="{}",
             link="https://example.com/page1",
             obsolete=False,
@@ -217,8 +217,8 @@ def test_get_latest_data(notion_client_mock):
         NodeEntity(
             id="block1",
             type="block",
-            created=parse_datetime("2022-01-02T00:00:00Z"),
-            edited=parse_datetime("2022-01-04T00:00:00Z"),
+            created=parse_datetime("2022-01-02T00:00:00.000Z"),
+            edited=parse_datetime("2022-01-04T00:00:00.000Z"),
             link=None,
             text='{"text": [{"type": "text", "text": {"content": "Hello, World!"}}]}',
             obsolete=False,
@@ -226,8 +226,8 @@ def test_get_latest_data(notion_client_mock):
         NodeEntity(
             id="page2",
             type="page",
-            edited=parse_datetime("2022-01-05T00:00:00Z"),
-            created=parse_datetime("2022-01-02T00:00:00Z"),
+            edited=parse_datetime("2022-01-05T00:00:00.000Z"),
+            created=parse_datetime("2022-01-02T00:00:00.000Z"),
             text="{}",
             link="https://example.com/page2",
             obsolete=True,
@@ -235,8 +235,8 @@ def test_get_latest_data(notion_client_mock):
         NodeEntity(
             id="database1",
             type="database",
-            edited=parse_datetime("2022-01-03T00:00:00Z"),
-            created=parse_datetime("2022-01-01T00:00:00Z"),
+            edited=parse_datetime("2022-01-03T00:00:00.000Z"),
+            created=parse_datetime("2022-01-01T00:00:00.000Z"),
             text="{}",
             link=None,
             obsolete=False,
@@ -244,8 +244,8 @@ def test_get_latest_data(notion_client_mock):
         NodeEntity(
             id="page3",
             type="page",
-            edited=parse_datetime("2022-01-01T00:00:00Z"),
-            created=parse_datetime("2022-01-01T00:00:00Z"),
+            edited=parse_datetime("2022-01-01T00:00:00.000Z"),
+            created=parse_datetime("2022-01-01T00:00:00.000Z"),
             text="{}",
             link="https://example.com/page3",
             obsolete=True,
@@ -253,8 +253,8 @@ def test_get_latest_data(notion_client_mock):
         NodeEntity(
             id="database2",
             type="database",
-            edited=parse_datetime("2022-01-04T00:00:00Z"),
-            created=parse_datetime("2022-01-02T00:00:00Z"),
+            edited=parse_datetime("2022-01-04T00:00:00.000Z"),
+            created=parse_datetime("2022-01-02T00:00:00.000Z"),
             text="{}",
             link=None,
             obsolete=False,

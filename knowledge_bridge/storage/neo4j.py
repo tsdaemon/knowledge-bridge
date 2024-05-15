@@ -24,7 +24,7 @@ class Neo4jGraphStorage(BaseGraphStorage):
         result = self.session.run(query, provider=provider)
         record = result.single()
         if record is not None:
-            return record["timestamp"].to_native()
+            return record["timestamp"].to_native().replace(tzinfo=None)
         else:
             return None
 

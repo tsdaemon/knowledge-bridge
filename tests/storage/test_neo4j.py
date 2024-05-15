@@ -50,6 +50,9 @@ def test_get_last_sync_timestamp(database_session, provider_name_for_tests):
     # THEN: the timestamp of the sync metadata node is returned
     assert isinstance(result, datetime)
 
+    # THEN: the timestamp is not tz-aware
+    assert result.tzinfo is None
+
 
 @pytest.fixture
 def nodes_and_edges() -> tuple[list[NodeEntity], list[EdgeEntity]]:

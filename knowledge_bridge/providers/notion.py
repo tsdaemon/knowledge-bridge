@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_datetime(value: str) -> datetime:
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def process_paginated(endpoint_method, last_edited_time=None, **kwargs):
@@ -79,7 +79,7 @@ class NotionProvider(BaseProvider):
         logger.info(f"Processing page {page['id']}")
         node = NodeEntity(
             id=page["id"],
-            type="page",
+            type="Page",
             created=page["created_time"],
             edited=page["last_edited_time"],
             # Dump all content as json
@@ -136,7 +136,7 @@ class NotionProvider(BaseProvider):
 
         node = NodeEntity(
             id=block["id"],
-            type="block",
+            type="Block",
             created=block["created_time"],
             edited=block["last_edited_time"],
             # Dump all content as json
@@ -166,7 +166,7 @@ class NotionProvider(BaseProvider):
         logger.info(f"Processing database {database['id']}")
         node = NodeEntity(
             id=database["id"],
-            type="database",
+            type="Database",
             created=database["created_time"],
             edited=database["last_edited_time"],
             # Dump all content as json
